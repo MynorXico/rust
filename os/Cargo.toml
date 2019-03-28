@@ -1,0 +1,7 @@
+[package]
+name = "test"
+version = "0.1.0"
+authors = ["Who cares@who"]
+
+[dependencies]
+rand = "0.3"

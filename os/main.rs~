@@ -1,0 +1,24 @@
+extern crate rand;
+
+use std::sync::mpsc::sync_channel;
+use std::thread;
+use rand::Rng;
+
+fn main(){
+
+	let (tx, rx) = sync_channel(3);
+
+	
+	thread::spawn(move||{
+		let counter = 0;
+		while true{
+			let n = rand::thread_rng().gen_range(0, 3);
+			println!("{}", counter);
+		}
+	});
+	tx.try_send(1).unwrap();
+	tx.try_send(2).unwrap();
+	tx.try_send(3).unwrap();
+	//tx.try_send(4).unwrap();
+}
+	
