@@ -5,3 +5,4 @@ authors = ["Who cares@who"]
 
 [dependencies]
 rand = "0.3"
+std-semaphore = "0.1.0"
