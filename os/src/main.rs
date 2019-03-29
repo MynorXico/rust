@@ -9,17 +9,13 @@ use std_semaphore::Semaphore;
 use std::sync::Arc;
 
 fn main(){
-	// Canal con tamaño definido (buffer)
-	let (tx, rx) = sync_channel(cap); // tx -> transmisor, rx -> receptor
+	
 
 	//let tx1 = mpsc::Sender::clone(&tx);
 	
 	// Semáforos (empty, data)
-	let empty_c = Arc::new(Semaphore::new(cap_u));
+
 	let data_c = Arc::new(Semaphore::new(0));
-	// Mapeo de semáforos sobre heap
-	let empty_p = empty_c.clone();
-	let data_p = data_c.clone();
 	
 	// Propiedades del consumidor
 	let max_eating_time = 3;
@@ -27,7 +23,15 @@ fn main(){
 	// Propiedades del productor
 	let max_baking_time = 10;
 	let cap = 3;
+	// Canal con tamaño definido (buffer)
+	let (tx, rx) = sync_channel(cap); // tx -> transmisor, rx -> receptor
 	let cap_u = cap as isize;
+		let empty_c = Arc::new(Semaphore::new(cap_u));
+	
+	// Mapeo de semáforos sobre heap
+	let empty_p = empty_c.clone();
+	let data_p = data_c.clone();
+	
 	
 	// Proceso de restaurantes
 	println!("All you can eat ¡TACOS!");
