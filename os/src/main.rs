@@ -1,55 +1,65 @@
 extern crate rand;
 extern crate std_semaphore;
-use std::sync::mpsc::sync_channel;
+
+use std::sync::mpsc::sync_channel; // multiple producer, single consumer
 use std::thread;
 use rand::Rng;
 use std::time::Duration;
 use std_semaphore::Semaphore;
 use std::sync::Arc;
+
 fn main(){
+	// Canal con tamaño definido (buffer)
+	let (tx, rx) = sync_channel(cap); // tx -> transmisor, rx -> receptor
 
-
-	let max_baking_time = 10;
-	let max_eating_time = 3;
-	let cap = 3;
+	//let tx1 = mpsc::Sender::clone(&tx);
 	
-	let (tx, rx) = sync_channel(cap);
-	let occ = 0;
-	let empty_c = Arc::new(Semaphore::new(3));
+	// Semáforos (empty, data)
+	let empty_c = Arc::new(Semaphore::new(cap_u));
 	let data_c = Arc::new(Semaphore::new(0));
+	// Mapeo de semáforos sobre heap
 	let empty_p = empty_c.clone();
 	let data_p = data_c.clone();
 	
-	let sem = Semaphore::new(5);
+	// Propiedades del consumidor
+	let max_eating_time = 3;
 	
+	// Propiedades del productor
+	let max_baking_time = 10;
+	let cap = 3;
+	let cap_u = cap as isize;
 	
-
+	// Proceso de restaurantes
+	println!("All you can eat ¡TACOS!");
 	
-	let handle = thread::spawn(move||{
-
-		let mut counter = 0;
-		while true {
-
-			let n = rand::thread_rng().gen_range(0,max_baking_time);
-			empty_p.acquire();// wait on empty
-			tx.try_send("cake").unwrap();
-			data_p.release();// send signal to data
-			println!("sent cake #{}", counter);
+	// Nuevo thread
+	let handle = thread::spawn(move||{ // Asignar variable permite hacer "join"
+		let mut counter = 0;	
+		loop {
+			let t = rand::thread_rng().gen_range(0,max_baking_time);
+			//empty_p.acquire();	// revisa que hayan espacios vacíos en buffer
+			tx.try_send("taco").unwrap();	// envía un taco
+			//data_p.release();	// aumenta contador de espacio ocupados
+			println!("Se preparó taco #{}", counter);
 			counter = counter + 1;
-			thread::sleep(Duration::from_secs(n));
+			thread::sleep(Duration::from_secs(t)); // tiempo que tarda en producir
 		}
 	});
 	
 	let mut order = 0;
-	thread::sleep(Duration::from_secs(5));
-	while true {
-		data_c.acquire();// wait on data
+	thread::sleep(Duration::from_secs(5));	// Se da tiempo inicial al productor
+
+	loop {
+		//data_c.acquire();	// verifica que hayan datos en el buffer
 		let received = rx.try_recv().unwrap();
-		empty_c.release();// send signal 
-		println!("Got {} {}", received, order);
-		let eating_time = rand::thread_rng().gen_range(1,max_baking_time);
+		//empty_c.release();	// aumenta contador de espacios vacíos
+		println!("Se consumió {} #{}", received, order);
+		// tiempo que tarda en comer
+		let eating_time = rand::thread_rng().gen_range(1,max_eating_time);
 		thread::sleep(Duration::from_secs(eating_time));
 		order = order +1;
 	}
+	
+	handle.join().unwrap();
 }
 	
